@@ -8,6 +8,8 @@ class FixedWidthHandler:
     field_id_transaction = '02'
     field_id_footer = '03'
 
+    transaction_limit = 20000
+
     def __init__(self, filepath):
         self.filepath = filepath
 
@@ -23,6 +25,9 @@ class FixedWidthHandler:
                     transactions.append(transaction)
                 elif field_id == self.field_id_footer:  # Footer
                     footer = utils.get_values_as_dict(line, const.FOOTER_SLICES)
+        # Check whether there are no more than 20000 transactions
+        if len(transactions) > self.transaction_limit:
+            raise utils.TransactionLimitError(self.transaction_limit)
         return header, transactions, footer
 
     def _format_record(self, record, slices):
@@ -43,6 +48,10 @@ class FixedWidthHandler:
             # Header
             header_line = self._format_record(header, const.HEADER_SLICES)
             file.write(header_line + '\n')
+
+            # Check whether there are no more than 20000 transactions
+            if len(transactions) > self.transaction_limit:
+                raise utils.TransactionLimitError(self.transaction_limit)
 
             # Transactions
             for transaction in transactions:
@@ -84,6 +93,7 @@ class FixedWidthHandler:
             raise ValueError(f"{field_name} is not a valid field for transaction.")
         for transaction in transactions:
             if transaction['Counter'] == counter:
+                value = value if not field_name == 'Amount' else int(value * 100)
                 transaction[field_name] = value
                 return
         raise ValueError(f"No transaction with counter {counter} found.")
