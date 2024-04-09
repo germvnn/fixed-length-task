@@ -20,3 +20,14 @@ FOOTER_SLICES = {
         'Control sum': (8, 20),
         'Reserved': (20, 120)
     }
+
+CURRENCIES = [
+    "USD", "EUR", "JPY", "GBP", "AUD",
+    "CAD", "CHF", "CNY", "SEK", "NZD",
+    "MXN", "SGD", "HKD", "NOK", "KRW",
+    "TRY", "RUB", "INR", "BRL", "ZAR",
+    "DKK", "PLN", "THB", "IDR", "HUF",
+    "CZK", "ILS", "CLP", "PHP", "AED",
+    "COP", "SAR", "MYR", "RON", "PEN",
+    "VND", "NGN", "BDT", "PKR", "QAR"
+]
