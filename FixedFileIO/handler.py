@@ -37,6 +37,7 @@ class FixedWidthHandler:
                 file.write(transaction_line + '\n')
 
             # Footer
+            footer['Control sum'] = sum(int(transaction['Amount']) for transaction in transactions)
             footer_line = self.format_record(footer, const.FOOTER_SLICES)
             file.write(footer_line + '\n')
 
@@ -45,7 +46,9 @@ class FixedWidthHandler:
         for field, (start, end) in slices.items():
             value = str(record.get(field, ''))
             length = end - start
-            if field in ['Amount', 'Control sum']:
+
+            if field in ['Counter', 'Amount', 'Control sum']:
+                value = value.zfill(length)
                 line += value.rjust(length)
             else:
                 line += value.ljust(length)
@@ -90,21 +93,27 @@ class FixedWidthHandler:
 
     def update_field(self, record_type, field_name, field_value, counter=None):
         header, transactions, footer = self.read_file()
+
+        try:
+            value = const.FIELD_TYPES[field_name](field_value)
+        except ValueError:
+            print(f"Cannot convert {field_value} to {const.FIELD_TYPES[field_name]}.")
+            return
+
         try:
             match record_type:
                 case 'header':
-                    header[field_name] = field_value
+                    header[field_name] = value
                 case 'transaction':
                     for transaction in transactions:
                         if transaction['Counter'] == counter:
-                            transaction[field_name] = field_value
+                            value = value if not field_name == 'Amount' else int(value * 100)
+                            transaction[field_name] = value
                             break
                 case 'footer':
                     print("Footer is being updated automatically.")
                 case _:
                     raise ValueError(f"Unknown record type: {record_type}")
             self.write_file(header=header, transactions=transactions, footer=footer)
-        except KeyError:
-            print(f"Field {field_name} does not exist in {record_type}.")
-        except ValueError as e:
+        except Exception as e:
             print(e)

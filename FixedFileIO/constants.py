@@ -31,3 +31,18 @@ CURRENCIES = [
     "COP", "SAR", "MYR", "RON", "PEN",
     "VND", "NGN", "BDT", "PKR", "QAR"
 ]
+
+CURRENCY_ERROR = f"Currency not recognized. Allowed currencies are: {', '.join(CURRENCIES)}"
+
+FIELD_TYPES = {
+    "Field ID": str,
+    "Name": str,
+    "Surname": str,
+    "Patronymic": str,
+    "Address": str,
+    "Counter": str,
+    "Amount": float,
+    "Currency": str,
+    "Total Counter": int,
+    "Control sum": int
+}

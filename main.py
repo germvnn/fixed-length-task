@@ -24,7 +24,7 @@ def add_transaction_cli(handler: FixedWidthHandler):
 
         currency = input("Enter the currency code: ").upper()
         if currency not in const.CURRENCIES:
-            print(f"Currency not recognized. Allowed currencies are: {', '.join(const.CURRENCIES)}")
+            print(const.CURRENCY_ERROR)
             continue
 
         handler.add_transaction(amount=amount, currency=currency)
@@ -32,19 +32,23 @@ def add_transaction_cli(handler: FixedWidthHandler):
 
 
 def update_field_cli(handler: FixedWidthHandler):
-    record_type = input("Enter record to update: ")
-    field_name = input("Enter field name: ")
+    record_type = input("Enter record to update (header|transaction): ")
+    field_name = input("Enter field name: ").title()
     field_value = input("Enter the new value: ")
+    if field_name == "Currency" and field_value not in const.CURRENCIES:
+        raise ValueError(const.CURRENCY_ERROR)
     counter = None
     if record_type == 'transaction':
-        counter = input("Enter the transaction counter: ")
+        counter = input("Enter the transaction counter: ").zfill(6)
     try:
         handler.update_field(record_type=record_type,
                              field_name=field_name,
-                             field_value=field_value,
+                             field_value=field_value if not field_name == "Currency" else field_value.upper(),
                              counter=counter)
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    except KeyError:
+        print(f"Field {field_name} does not exist in {record_type}.")
+    except ValueError as e:
+        print(e)
 
 
 def main():
