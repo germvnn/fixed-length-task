@@ -7,7 +7,3 @@ def get_values_as_dict(line, slices):
 
 def validate_structure(record):
     pass
-
-
-def format_currency(value):
-    pass

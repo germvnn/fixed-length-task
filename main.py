@@ -13,7 +13,7 @@ def read_values(handler: FixedWidthHandler):
     print(footer)
 
 
-def add_transaction_cli(handler):
+def add_transaction_cli(handler: FixedWidthHandler):
     while True:
         amount = input("Enter the transaction amount: ")
         try:
@@ -31,6 +31,22 @@ def add_transaction_cli(handler):
         break
 
 
+def update_field_cli(handler: FixedWidthHandler):
+    record_type = input("Enter record to update: ")
+    field_name = input("Enter field name: ")
+    field_value = input("Enter the new value: ")
+    counter = None
+    if record_type == 'transaction':
+        counter = input("Enter the transaction counter: ")
+    try:
+        handler.update_field(record_type=record_type,
+                             field_name=field_name,
+                             field_value=field_value,
+                             counter=counter)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
 def main():
     parser = argparse.ArgumentParser(description='CLI for Fixed File IO operations.')
     parser.add_argument('action', choices=['read', 'add', 'update'], help='Action to perform.')
@@ -45,7 +61,7 @@ def main():
         case 'add':
             add_transaction_cli(handler)
         case 'update':
-            pass
+            update_field_cli(handler)
 
 
 if __name__ == '__main__':
