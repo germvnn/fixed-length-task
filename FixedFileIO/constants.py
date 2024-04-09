@@ -46,3 +46,7 @@ FIELD_TYPES = {
     "Total Counter": int,
     "Control sum": int
 }
+
+HEADER_FIELDS = {"Field ID", "Name", "Surname", "Patronymic", "Address"}
+TRANSACTION_FIELDS = {"Field ID", "Counter", "Amount", "Currency"}
+FOOTER_FIELDS = {"Total Counter", "Control sum"}

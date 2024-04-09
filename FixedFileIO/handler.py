@@ -91,6 +91,20 @@ class FixedWidthHandler:
             file.writelines(lines)
             file.truncate()
 
+    def _update_header_field(self, header, field_name, value):
+        if field_name not in const.HEADER_FIELDS:
+            raise ValueError(f"{field_name} is not a valid field for header.")
+        header[field_name] = value
+
+    def _update_transaction_field(self, transactions, field_name, value, counter):
+        if field_name not in const.TRANSACTION_FIELDS:
+            raise ValueError(f"{field_name} is not a valid field for transaction.")
+        for transaction in transactions:
+            if transaction['Counter'] == counter:
+                transaction[field_name] = value
+                return
+        raise ValueError(f"No transaction with counter {counter} found.")
+
     def update_field(self, record_type, field_name, field_value, counter=None):
         header, transactions, footer = self.read_file()
 
@@ -103,17 +117,18 @@ class FixedWidthHandler:
         try:
             match record_type:
                 case 'header':
-                    header[field_name] = value
+                    self._update_header_field(header=header, field_name=field_name, value=value)
                 case 'transaction':
-                    for transaction in transactions:
-                        if transaction['Counter'] == counter:
-                            value = value if not field_name == 'Amount' else int(value * 100)
-                            transaction[field_name] = value
-                            break
+                    if counter is None:
+                        raise ValueError("Counter is required for updating a transaction.")
+                    self._update_transaction_field(transactions=transactions,
+                                                   field_name=field_name,
+                                                   value=value,
+                                                   counter=counter)
                 case 'footer':
                     print("Footer is being updated automatically.")
                 case _:
                     raise ValueError(f"Unknown record type: {record_type}")
             self.write_file(header=header, transactions=transactions, footer=footer)
-        except Exception as e:
+        except ValueError as e:
             print(e)

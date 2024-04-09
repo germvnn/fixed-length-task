@@ -47,7 +47,7 @@ def update_field_cli(handler: FixedWidthHandler):
                              counter=counter)
     except KeyError:
         print(f"Field {field_name} does not exist in {record_type}.")
-    except ValueError as e:
+    except Exception as e:
         print(e)
 
 
