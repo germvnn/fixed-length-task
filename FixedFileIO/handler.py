@@ -20,50 +20,44 @@ class FixedWidthHandler:
                     header = utils.get_values_as_dict(line, const.HEADER_SLICES)
                 elif field_id == self.field_id_transaction:  # Transaction
                     transaction = utils.get_values_as_dict(line, const.TRANSACTIONS_SLICES)
-                    transaction.pop('Reserved', None)
                     transactions.append(transaction)
                 elif field_id == self.field_id_footer:  # Footer
                     footer = utils.get_values_as_dict(line, const.FOOTER_SLICES)
-                    footer.pop('Reserved', None)
         return header, transactions, footer
 
+    def _generate_transaction_line(self, counter, amount, currency):
+        amount_formatted = f"{amount:012d}"
+        reserved_space = ' ' * (120 - 23)
+        return f"{self.field_id_transaction}{counter}{amount_formatted}{currency}{reserved_space}"
+
+    def _calculate_control_sum(self, lines, amount):
+        return sum(int(line[8:20]) for line in lines if line.startswith(self.field_id_transaction)) + amount
+
+    def _update_footer(self, lines, counter, control_sum):
+        control_sum_formatted = f"{control_sum:012d}"
+        lines[-1] = f"{self.field_id_footer}{counter}{control_sum_formatted}{' ' * (120 - 23)}"
+
     def add_transaction(self, amount, currency):
-        slices = const.TRANSACTIONS_SLICES
-
-        amount_start = slices['Amount'][0]
-        amount_end = slices['Amount'][1]
-
-        reserved_start = slices['Reserved'][0]
-        reserved_end = slices['Amount'][1]
 
         with open(self.filepath, 'r+', encoding='utf-8') as file:
             lines = file.readlines()
 
-            # Number of inserted transaction
-            next_counter = str(len(lines) - 1).zfill(6)
-            amount_formatted = f"{int(float(amount) * 100):0{amount_end -amount_start}d}"
+            # Counter of inserted transaction
+            next_counter = str(len(lines) - 1).zfill(6)  # -2 (header, footer) +1 (new_transaction)
+            new_amount = int(float(amount) * 100)
 
-            transaction_line = (
-                self.field_id_transaction +
-                next_counter +
-                amount_formatted +
-                currency +
-                ' '.ljust(reserved_end - reserved_start)
-            )
+            transaction_line = self._generate_transaction_line(counter=next_counter,
+                                                               amount=new_amount,
+                                                               currency=currency)
+            control_sum = self._calculate_control_sum(lines=lines, amount=new_amount)
 
-            control_sum = sum(int(line[amount_start:amount_end])
-                              for line in lines if line.startswith(self.field_id_transaction)) + int(amount_formatted)
-            control_sum_formatted = f"{control_sum:0{amount_end-amount_start}d}"
-
+            # Insert transaction line
             lines.insert(-1, transaction_line + '\n')
 
             # Update footer
-            updated_footer = (f"{self.field_id_footer}"
-                              f"{next_counter}"
-                              f"{control_sum_formatted}"
-                              f"{' ' * (reserved_end - reserved_start)}")
-            lines[-1] = updated_footer
+            self._update_footer(lines=lines, counter=next_counter, control_sum=control_sum)
 
+            # Write file
             file.seek(0)
             file.writelines(lines)
             file.truncate()

@@ -7,7 +7,9 @@ def read_values(handler: FixedWidthHandler):
     header, transactions, footer = handler.read_file()
     print(header)
     for transaction in transactions:
+        transaction.pop('Reserved', None)
         print(transaction)
+    footer.pop('Reserved', None)
     print(footer)
 
 
