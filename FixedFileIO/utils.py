@@ -1,3 +1,6 @@
+import re
+
+
 class TransactionLimitError(Exception):
     """Exception raised when the maximum
      number of transactions is exceeded."""
@@ -14,5 +17,25 @@ def get_values_as_dict(line, slices):
     return values
 
 
-def validate_structure(record):
-    pass
+class Validation:
+    def __init__(self, filepath):
+        self.filepath = filepath
+
+    def _validate_header(self, line):
+        pass
+
+    def _validate_transactions(self, lines):
+        pass
+
+    def _validate_footer(self, line):
+        pass
+
+    def run(self):
+        with open(self.filepath, 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+
+            results = [self._validate_header(lines[0]), self._validate_transactions(lines[1:-1]),
+                       self._validate_footer(lines[-1])]
+
+            if all(results):
+                return True

@@ -1,4 +1,5 @@
 import argparse
+import json
 from FixedFileIO.handler import FixedWidthHandler
 from FixedFileIO import constants as const
 
@@ -38,9 +39,28 @@ def add_transaction_cli(handler: FixedWidthHandler):
         break
 
 
+def _load_field_permissions(filepath='configs/permissions.json'):
+    with open(filepath, 'r') as file:
+        return json.load(file)
+
+
+def _save_field_permissions(settings, filepath='configs/permissions.json'):
+    try:
+        with open(filepath, 'w') as file:
+            json.dump(settings, file, indent=4)
+    except Exception as e:
+        print(f"Saving configs failed due to: {e}")
+
+
 def update_field_cli(handler: FixedWidthHandler):
+    field_permissions = _load_field_permissions()
+
     record_type = input("Enter record to update (header|transaction): ")
     field_name = input("Enter field name: ").title()
+
+    if not field_permissions.get(field_name, False):
+        raise KeyError(f"Updating field '{field_name}' is not allowed.")
+
     field_value = input("Enter the new value: ")
     if field_name == "Currency" and field_value not in const.CURRENCIES:
         raise ValueError(const.CURRENCY_ERROR)
@@ -58,9 +78,23 @@ def update_field_cli(handler: FixedWidthHandler):
         print(e)
 
 
+def change_permissions():
+    permissions = _load_field_permissions()
+    print("Current field permissions:")
+    for field, permission in permissions.items():
+        print(f"{field}: {'Allowed' if permission else 'Blocked'}")
+    field_to_change = input("Enter field name to change permission: ")
+    if field_to_change in permissions:
+        permissions[field_to_change] = not permissions[field_to_change]
+        _save_field_permissions(permissions)
+        print(f"Permission for {field_to_change} changed successfully.")
+    else:
+        print("Field name does not exist.")
+
+
 def main():
     parser = argparse.ArgumentParser(description='CLI for Fixed File IO operations.')
-    parser.add_argument('action', choices=['read', 'add', 'update'], help='Action to perform.')
+    parser.add_argument('action', choices=['read', 'add', 'update', 'settings'], help='Action to perform.')
     parser.add_argument('filepath', help='Path to the fixed-width file.')
 
     args = parser.parse_args()
@@ -73,6 +107,8 @@ def main():
             add_transaction_cli(handler)
         case 'update':
             update_field_cli(handler)
+        case 'settings':
+            change_permissions()
 
 
 if __name__ == '__main__':
