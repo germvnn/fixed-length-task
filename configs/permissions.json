@@ -1,0 +1,12 @@
+{
+    "Field ID": false,
+    "Name": true,
+    "Surname": true,
+    "Patronymic": true,
+    "Address": true,
+    "Counter": false,
+    "Amount": true,
+    "Currency": true,
+    "Total Counter": false,
+    "Control sum": false
+}
