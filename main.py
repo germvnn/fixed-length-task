@@ -6,11 +6,18 @@ from FixedFileIO import constants as const
 def read_values(handler: FixedWidthHandler):
     header, transactions, footer = handler.read_file()
     print(header)
+
+    currencies = set()
+
     for transaction in transactions:
         transaction.pop('Reserved', None)
+        currencies.add(transaction['Currency'])
         print(transaction)
     footer.pop('Reserved', None)
     print(footer)
+
+    if len(currencies) > 1:
+        print(f"Control sum is not representative due to different currencies: {currencies}")
 
 
 def add_transaction_cli(handler: FixedWidthHandler):
