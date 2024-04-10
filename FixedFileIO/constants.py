@@ -32,7 +32,6 @@ CURRENCIES = [
     "VND", "NGN", "BDT", "PKR", "QAR"
 ]
 
-CURRENCY_ERROR = f"Currency not recognized. Allowed currencies are: {', '.join(CURRENCIES)}"
 
 FIELD_TYPES = {
     "Field ID": str,
@@ -50,3 +49,7 @@ FIELD_TYPES = {
 HEADER_FIELDS = {"Field ID", "Name", "Surname", "Patronymic", "Address"}
 TRANSACTION_FIELDS = {"Field ID", "Counter", "Amount", "Currency"}
 FOOTER_FIELDS = {"Total Counter", "Control sum"}
+
+AUTO_FIELDS = {"Field ID", "Counter", "Total Counter", "Control sum"}
+
+CURRENCY_ERROR = f"Currency not recognized. Allowed currencies are: {', '.join(CURRENCIES)}"
