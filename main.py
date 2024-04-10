@@ -1,7 +1,14 @@
 import argparse
 import json
+import logging
+import os
+from datetime import datetime
+
 from FixedFileIO.handler import FixedWidthHandler
 from FixedFileIO import constants as const
+
+
+logger = logging.getLogger(__name__)
 
 
 def read_values(handler: FixedWidthHandler) -> None:
@@ -92,12 +99,33 @@ def change_permissions() -> None:
         print("Field name does not exist.")
 
 
+def setup_logger() -> None:
+    # Create logs directory if not exists
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+
+    # Set logs filename with current time
+    current_time = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+    log_filename = f"logs/processing_{current_time}.log"
+
+    # Logger configs
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s:%(message)s',
+        handlers=[
+            logging.FileHandler(log_filename),
+            logging.StreamHandler()
+        ]
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description='CLI for Fixed File IO operations.')
     parser.add_argument('action', choices=['read', 'add', 'update', 'settings'], help='Action to perform.')
     parser.add_argument('filepath', help='Path to the fixed-width file.')
 
     args = parser.parse_args()
+    setup_logger()
     handler = FixedWidthHandler(filepath=args.filepath)
 
     match args.action:

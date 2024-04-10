@@ -1,5 +1,10 @@
+import logging
+
 from . import constants as const
 from . import utils
+
+
+logger = logging.getLogger(__package__)
 
 
 class FixedWidthHandler:
