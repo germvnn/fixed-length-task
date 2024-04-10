@@ -8,6 +8,24 @@ logger = logging.getLogger(__package__)
 
 
 class FixedWidthHandler:
+    """
+       Handles reading, writing, and modifying fixed-width file format.
+
+       Attributes:
+           filepath (str): Path to the fixed-width file.
+           field_id_header (str): Field ID for header records.
+           field_id_transaction (str): Field ID for transaction records.
+           field_id_footer (str): Field ID for footer records.
+           transaction_limit (int): Maximum number of transaction records allowed.
+
+       Methods:
+           read_file: Reads the fixed-width file
+                      and returns its content as structured data.
+           write_file: Writes structured data back to the fixed-width file format.
+           add_transaction: Adds a new transaction record to the file.
+           update_field: Updates the value of a specific
+                         field in a header, transaction, or footer record.
+       """
 
     field_id_header: str
     field_id_transaction: str
@@ -15,6 +33,8 @@ class FixedWidthHandler:
     transaction_limit: int
 
     def __init__(self, filepath):
+        """Initializes the handler with file path and default settings."""
+
         self.filepath = filepath
         self.field_id_header = '01'
         self.field_id_transaction = '02'
@@ -22,6 +42,7 @@ class FixedWidthHandler:
         self.transaction_limit = 20000
 
     def read_file(self) -> (dict, list, dict):
+        """Reads the fixed-width file, returning the header, list of transactions, and footer."""
         header, transactions, footer = None, [], None
         try:
             with open(self.filepath, 'r', encoding='utf-8') as file:
@@ -48,6 +69,7 @@ class FixedWidthHandler:
         return header, transactions, footer
 
     def _format_record(self, record, slices) -> str:
+        """Formats a single record for writing to the file based on slice definitions."""
         line = ''
         for field, (start, end) in slices.items():
             value = str(record.get(field, ''))
@@ -61,6 +83,7 @@ class FixedWidthHandler:
         return line
 
     def write_file(self, header, transactions, footer) -> None:
+        """Writes the header, transactions, and footer back to the fixed-width file."""
         try:
             with open(self.filepath, 'w', encoding='utf-8') as file:
                 # Header
@@ -90,6 +113,7 @@ class FixedWidthHandler:
         logger.info("File successfully wrote")
 
     def add_transaction(self, amount, currency) -> None:
+        """Adds a new transaction record to the file."""
         header, transactions, footer = self.read_file()
 
         # Next transaction number
@@ -112,6 +136,7 @@ class FixedWidthHandler:
         self.write_file(header, transactions, footer)
 
     def _update_header_field(self, header, field_name, value) -> None:
+        """Updates a field value in the header record."""
         if field_name not in const.HEADER_FIELDS:
             message = f"{field_name} is not a valid field for header."
             logger.error(message)
@@ -120,6 +145,7 @@ class FixedWidthHandler:
         logger.info(f"Value of {field_name} successfully updated into {value}")
 
     def _update_transaction_field(self, transactions, field_name, value, counter) -> None:
+        """Updates a field value in a specific transaction record."""
         if field_name not in const.TRANSACTION_FIELDS:
             message = f"{field_name} is not a valid field for transaction."
             logger.error(message)
@@ -135,6 +161,7 @@ class FixedWidthHandler:
         raise ValueError(message)
 
     def update_field(self, record_type, field_name, field_value, counter=None) -> None:
+        """Updates a field value in header, transaction, or footer based on record type."""
         header, transactions, footer = self.read_file()
 
         if field_name in const.AUTO_FIELDS:
