@@ -4,7 +4,7 @@ from FixedFileIO.handler import FixedWidthHandler
 from FixedFileIO import constants as const
 
 
-def read_values(handler: FixedWidthHandler):
+def read_values(handler: FixedWidthHandler) -> None:
     header, transactions, footer = handler.read_file()
     print(header)
 
@@ -21,7 +21,7 @@ def read_values(handler: FixedWidthHandler):
         print(f"Control sum is not representative due to different currencies: {currencies}")
 
 
-def add_transaction_cli(handler: FixedWidthHandler):
+def add_transaction_cli(handler: FixedWidthHandler) -> None:
     while True:
         amount = input("Enter the transaction amount: ")
         try:
@@ -39,12 +39,12 @@ def add_transaction_cli(handler: FixedWidthHandler):
         break
 
 
-def _load_field_permissions(filepath='configs/permissions.json'):
+def _load_field_permissions(filepath='configs/permissions.json') -> dict:
     with open(filepath, 'r') as file:
         return json.load(file)
 
 
-def _save_field_permissions(settings, filepath='configs/permissions.json'):
+def _save_field_permissions(settings, filepath='configs/permissions.json') -> None:
     try:
         with open(filepath, 'w') as file:
             json.dump(settings, file, indent=4)
@@ -52,7 +52,7 @@ def _save_field_permissions(settings, filepath='configs/permissions.json'):
         print(f"Saving configs failed due to: {e}")
 
 
-def update_field_cli(handler: FixedWidthHandler):
+def update_field_cli(handler: FixedWidthHandler) -> None:
     field_permissions = _load_field_permissions()
 
     record_type = input("Enter record to update (header|transaction): ")
@@ -78,7 +78,7 @@ def update_field_cli(handler: FixedWidthHandler):
         print(e)
 
 
-def change_permissions():
+def change_permissions() -> None:
     permissions = _load_field_permissions()
     print("Current field permissions:")
     for field, permission in permissions.items():
@@ -92,7 +92,7 @@ def change_permissions():
         print("Field name does not exist.")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description='CLI for Fixed File IO operations.')
     parser.add_argument('action', choices=['read', 'add', 'update', 'settings'], help='Action to perform.')
     parser.add_argument('filepath', help='Path to the fixed-width file.')

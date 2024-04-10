@@ -11,7 +11,7 @@ class TransactionLimitError(Exception):
         super().__init__(f"{message}: {limit}")
 
 
-def get_values_as_dict(line, slices):
+def get_values_as_dict(line, slices) -> dict:
     values = {}
     for key, (start, end) in slices.items():
         values[key] = line[start:end].strip()
@@ -23,7 +23,7 @@ class Validation:
         self.filepath = filepath
 
     @staticmethod
-    def _validate_header(line):
+    def _validate_header(line) -> (bool, str):
         slices = const.HEADER_SLICES
 
         field_id = line[slices['Field ID'][0]:slices['Field ID'][1]]
@@ -48,7 +48,7 @@ class Validation:
         return True, "Header is valid."
 
     @staticmethod
-    def _validate_transactions(lines):
+    def _validate_transactions(lines) -> (bool, str):
         slices = const.TRANSACTIONS_SLICES
 
         for line in lines:
@@ -76,7 +76,7 @@ class Validation:
         return True, "All transactions are valid"
 
     @staticmethod
-    def _validate_footer(line, num_transactions, total_amount):
+    def _validate_footer(line, num_transactions, total_amount) -> (bool, str):
         slices = const.FOOTER_SLICES
 
         field_id = line[slices['Field ID'][0]:slices['Field ID'][1]]
@@ -101,7 +101,7 @@ class Validation:
 
         return True, "Footer is valid"
 
-    def run(self):
+    def run(self) -> (bool, list):
         with open(self.filepath, 'r', encoding='utf-8') as file:
             lines = file.readlines()
 

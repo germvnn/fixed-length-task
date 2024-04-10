@@ -4,16 +4,19 @@ from . import utils
 
 class FixedWidthHandler:
 
-    field_id_header = '01'
-    field_id_transaction = '02'
-    field_id_footer = '03'
-
-    transaction_limit = 20000
+    field_id_header: str
+    field_id_transaction: str
+    field_id_footer: str
+    transaction_limit: int
 
     def __init__(self, filepath):
         self.filepath = filepath
+        self.field_id_header = '01'
+        self.field_id_transaction = '02'
+        self.field_id_footer = '03'
+        self.transaction_limit = 20000
 
-    def read_file(self):
+    def read_file(self) -> (dict, list, dict):
         header, transactions, footer = None, [], None
         with open(self.filepath, 'r', encoding='utf-8') as file:
             for line in file:
@@ -30,7 +33,7 @@ class FixedWidthHandler:
             raise utils.TransactionLimitError(self.transaction_limit)
         return header, transactions, footer
 
-    def _format_record(self, record, slices):
+    def _format_record(self, record, slices) -> str:
         line = ''
         for field, (start, end) in slices.items():
             value = str(record.get(field, ''))
@@ -43,7 +46,7 @@ class FixedWidthHandler:
                 line += value.ljust(length)
         return line
 
-    def write_file(self, header, transactions, footer):
+    def write_file(self, header, transactions, footer) -> None:
         with open(self.filepath, 'w', encoding='utf-8') as file:
             # Header
             header_line = self._format_record(header, const.HEADER_SLICES)
@@ -63,7 +66,7 @@ class FixedWidthHandler:
             footer_line = self._format_record(footer, const.FOOTER_SLICES)
             file.write(footer_line + '\n')
 
-    def add_transaction(self, amount, currency):
+    def add_transaction(self, amount, currency) -> None:
         header, transactions, footer = self.read_file()
 
         # Next transaction number
@@ -83,12 +86,12 @@ class FixedWidthHandler:
         footer['Total Counter'] = f"{len(transactions):06}"
         self.write_file(header, transactions, footer)
 
-    def _update_header_field(self, header, field_name, value):
+    def _update_header_field(self, header, field_name, value) -> None:
         if field_name not in const.HEADER_FIELDS:
             raise ValueError(f"{field_name} is not a valid field for header.")
         header[field_name] = value
 
-    def _update_transaction_field(self, transactions, field_name, value, counter):
+    def _update_transaction_field(self, transactions, field_name, value, counter) -> None:
         if field_name not in const.TRANSACTION_FIELDS:
             raise ValueError(f"{field_name} is not a valid field for transaction.")
         for transaction in transactions:
@@ -98,7 +101,7 @@ class FixedWidthHandler:
                 return
         raise ValueError(f"No transaction with counter {counter} found.")
 
-    def update_field(self, record_type, field_name, field_value, counter=None):
+    def update_field(self, record_type, field_name, field_value, counter=None) -> None:
         header, transactions, footer = self.read_file()
 
         try:
