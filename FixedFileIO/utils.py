@@ -173,7 +173,7 @@ class ValidationExecutor:
 
         return success(log_message="Footer is valid.")
 
-    def run(self) -> (bool, list):
+    def run(self) -> (bool, dict):
         """Validation of whole file"""
         with open(self.filepath, 'r', encoding='utf-8') as file:
             lines = file.readlines()
@@ -191,11 +191,13 @@ class ValidationExecutor:
                 total_amount = None
 
             # List of results of particular validations
-            results = [self.validate_header(line=lines[0]),
-                       self.validate_transactions(lines=lines[1:-1]),
-                       self.validate_footer(line=lines[-1],
-                                            num_transactions=num_transactions,
-                                            total_amount=total_amount)]
+            results = {
+                'Header': self.validate_header(line=lines[0]),
+                'Transactions': self.validate_transactions(lines=lines[1:-1]),
+                'Footer': self.validate_footer(line=lines[-1],
+                                               num_transactions=num_transactions,
+                                               total_amount=total_amount)
+            }
 
             if all(results):
                 return success(log_message=f"Validation OK. Results: {results}"), results

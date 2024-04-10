@@ -35,7 +35,6 @@ def read_values_cli(handler: FixedWidthHandler) -> None:
 def add_transaction_cli(handler: FixedWidthHandler) -> None:
     """CLI function for managing add transactions"""
     amount = input("Enter the transaction amount: ")
-
     # Check whether amount can be float type
     try:
         amount = "{:.2f}".format(float(amount))
@@ -44,13 +43,11 @@ def add_transaction_cli(handler: FixedWidthHandler) -> None:
         return
 
     currency = input("Enter the currency code: ").upper()  # Make currency insertion flexible
-
     handler.add_transaction(amount=amount, currency=currency)
 
 
 def update_field_cli(handler: FixedWidthHandler) -> None:
     """CLI function for managing update file fields"""
-
     # Load permissions for updating fields
     field_permissions = _load_field_permissions()
 
@@ -148,12 +145,10 @@ def main() -> None:
     validation = ValidationExecutor(filepath=args.filepath)
 
     # Validation check
-    status, results = validation.run()
-    if status:
-        print(f"Validation success: {results}")
-    else:
-        print(f"Validation failure: {results}")
+    status, _ = validation.run()
+    if not status:
         return
+
     # Main
     match args.action:
         case 'read':
