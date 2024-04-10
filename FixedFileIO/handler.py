@@ -186,6 +186,7 @@ class FixedWidthHandler:
         header, transactions, footer = self.read_file()
 
         if field_name == "Currency" and field_value not in const.CURRENCIES:
+            logger.error(const.CURRENCY_ERROR)
             raise ValueError(const.CURRENCY_ERROR)
 
         # Warn user about attempt of modifying auto fields
@@ -195,9 +196,14 @@ class FixedWidthHandler:
         # Attempt to convert value type to validate
         try:
             value = const.FIELD_TYPES[field_name](field_value)
+        except KeyError:
+            error_message = f"There is no Field: '{field_name}' in Record: '{record_type}'."
+            logger.error(error_message)
+            raise ValueError(error_message)
         except ValueError:
-            logger.error(f"Cannot convert {field_value} to {const.FIELD_TYPES[field_name]}.")
-            raise
+            error_message = f"Cannot convert '{field_value}' to expected type for Field: '{field_name}'."
+            logger.error(error_message)
+            raise ValueError(error_message)
 
         match record_type:
             case 'header':

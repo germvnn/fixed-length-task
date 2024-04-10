@@ -46,7 +46,7 @@ def update_field_cli(handler: FixedWidthHandler) -> None:
     record_type = input("Enter record to update: ")
     field_name = input("Enter field name: ").title()
 
-    if not field_permissions.get(field_name, False):
+    if field_permissions.get(field_name, False):
         raise KeyError(f"Updating field '{field_name}' is not allowed.")
 
     field_value = input("Enter the new value: ")
@@ -76,7 +76,7 @@ def change_permissions() -> None:
     permissions = _load_field_permissions()
     print("Current field permissions:")
     for field, permission in permissions.items():
-        print(f"{field}: {'Allowed' if permission else 'Blocked'}")
+        print(f"{field}: {'Blocked' if permission else 'Allowed'}")
     field_to_change = input("Enter field name to change permission: ")
     if field_to_change in permissions:
         permissions[field_to_change] = not permissions[field_to_change]
@@ -98,7 +98,7 @@ def setup_logger() -> None:
     # Logger configs
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s %(levelname)s:%(message)s',
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[
             logging.FileHandler(log_filename),
             logging.StreamHandler()
