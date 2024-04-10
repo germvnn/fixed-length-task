@@ -68,7 +68,7 @@ def failure(log_message) -> bool:
     return False
 
 
-class Validation:
+class ValidationExecutor:
     """Class used for validation proper file format"""
     def __init__(self, filepath):
         self.filepath = filepath
@@ -83,7 +83,7 @@ class Validation:
         slices = const.HEADER_SLICES
 
         if not self._validate_line_length(line):
-            failure(log_message=f"Required line length: 120 Actual: {len(line) - 1}")  # - \n
+            return failure(log_message=f"Required line length: 120 Actual: {len(line) - 1}")  # - \n
 
         # Get values of fields using constant slices
         field_id = line[slices['Field ID'][0]:slices['Field ID'][1]]
@@ -98,7 +98,7 @@ class Validation:
             return failure(log_message="Invalid Field ID in header.")
 
         # Name, Surname, Patronymic validation
-        for key, item in {"Name": name, "Surname": surname, "Patronymic": patronymic}:
+        for key, item in {"Name": name, "Surname": surname, "Patronymic": patronymic}.items():
             if not re.match(r'^[A-Za-z\s]+$', item):
                 return failure(log_message=f"Invalid {key} in header")
 
@@ -115,7 +115,7 @@ class Validation:
         # Check every line
         for line in lines:
             if not self._validate_line_length(line):
-                failure(log_message=f"Required line length: 120 Actual: {len(line) - 1}")  # - \n
+                return failure(log_message=f"Required line length: 120 Actual: {len(line) - 1}")  # - \n
 
             # Get values of fields using constant slices
             field_id = line[slices['Field ID'][0]:slices['Field ID'][1]]
@@ -141,14 +141,14 @@ class Validation:
             if currency not in const.CURRENCIES:
                 return failure(log_message=f"Invalid currency '{currency}' in transaction.")
 
-        return success(log_message="All transactions are valid.")
+        return success(log_message="Transactions are valid.")
 
     def validate_footer(self, line, num_transactions, total_amount) -> bool:
         """Validation of file's footer"""
         slices = const.FOOTER_SLICES
 
         if not self._validate_line_length(line):
-            failure(log_message=f"Required line length: 120 Actual: {len(line) - 1}")  # - \n
+            return failure(log_message=f"Required line length: 120 Actual: {len(line) - 1}")  # - \n
 
         # Get values of fields using constant slices
         field_id = line[slices['Field ID'][0]:slices['Field ID'][1]]
@@ -184,7 +184,11 @@ class Validation:
             amount_start = const.TRANSACTIONS_SLICES['Amount'][0]
             amount_end = const.TRANSACTIONS_SLICES['Amount'][1]
             # Sum of transactions Amounts
-            total_amount = sum(int(line[amount_start:amount_end]) for line in lines if line.startswith('02'))
+            try:
+                total_amount = sum(int(line[amount_start:amount_end]) for line in lines if line.startswith('02'))
+            except ValueError:
+                logger.error(f"Unavailable to count total_amount")
+                total_amount = None
 
             # List of results of particular validations
             results = [self.validate_header(line=lines[0]),

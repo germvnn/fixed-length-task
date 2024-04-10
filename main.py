@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 
 from FixedFileIO.handler import FixedWidthHandler
+from FixedFileIO.utils import ValidationExecutor
 
 
 logger = logging.getLogger(__name__)
@@ -114,6 +115,13 @@ def main() -> None:
     args = parser.parse_args()
     setup_logger()
     handler = FixedWidthHandler(filepath=args.filepath)
+    validation = ValidationExecutor(filepath=args.filepath)
+
+    status, results = validation.run()
+    if status:
+        print(f"Validation success: {results}")
+    else:
+        print(f"Validation failure: {results}")
 
     match args.action:
         case 'read':
