@@ -8,7 +8,7 @@ from FixedFileIO.handler import FixedWidthHandler
 from FixedFileIO.utils import ValidationExecutor
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("main")
 
 
 def read_values_cli(handler: FixedWidthHandler) -> None:
@@ -109,7 +109,7 @@ def change_permissions_cli() -> None:
         print("Invalid response")
 
 
-def setup_logger() -> None:
+def setup_logger(filepath: str) -> None:
     # Create logs directory if not exists
     if not os.path.exists('logs'):
         os.makedirs('logs')
@@ -121,7 +121,7 @@ def setup_logger() -> None:
     # Logger configs
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        format=f"%(asctime)s - %(name)s - {filepath} -%(levelname)s - %(message)s",
         handlers=[
             logging.FileHandler(log_filename),
             logging.StreamHandler()
@@ -137,7 +137,13 @@ def main() -> None:
 
     # Initializations
     args = parser.parse_args()
-    setup_logger()
+
+    # Validation not needed for changing settings
+    if args.action == 'settings':
+        change_permissions_cli()
+        return
+
+    setup_logger(filepath=args.filepath)
     handler = FixedWidthHandler(filepath=args.filepath)
     validation = ValidationExecutor(filepath=args.filepath)
 
@@ -156,8 +162,6 @@ def main() -> None:
             add_transaction_cli(handler)
         case 'update':
             update_field_cli(handler)
-        case 'settings':
-            change_permissions_cli()
 
 
 if __name__ == '__main__':
