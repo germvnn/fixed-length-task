@@ -191,11 +191,11 @@ class ValidationExecutor:
                 total_amount = None
 
             # List of results of particular validations
-            results = [self.validate_header(line=lines[0]),
+            results = {self.validate_header(line=lines[0]),
                        self.validate_transactions(lines=lines[1:-1]),
                        self.validate_footer(line=lines[-1],
                                             num_transactions=num_transactions,
-                                            total_amount=total_amount)]
+                                            total_amount=total_amount)}
 
             if all(results):
                 return success(log_message=f"Validation OK. Results: {results}"), results
