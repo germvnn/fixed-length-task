@@ -116,7 +116,7 @@ def setup_logger(filepath: str) -> None:
 
     # Set logs filename with current time
     current_time = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-    log_filename = f"logs/processing_{current_time}.log"
+    log_filename = f"logs/{os.path.basename(filepath)}_{current_time}.log"
 
     # Logger configs
     logging.basicConfig(
