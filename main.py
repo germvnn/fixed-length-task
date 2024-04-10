@@ -5,7 +5,6 @@ import os
 from datetime import datetime
 
 from FixedFileIO.handler import FixedWidthHandler
-from FixedFileIO import constants as const
 
 
 logger = logging.getLogger(__name__)
@@ -29,21 +28,35 @@ def read_values(handler: FixedWidthHandler) -> None:
 
 
 def add_transaction_cli(handler: FixedWidthHandler) -> None:
-    while True:
-        amount = input("Enter the transaction amount: ")
-        try:
-            amount = "{:.2f}".format(float(amount))
-        except ValueError:
-            print("Invalid amount. Please enter a numeric value.")
-            continue
+    amount = input("Enter the transaction amount: ")
+    try:
+        amount = "{:.2f}".format(float(amount))
+    except ValueError:
+        print("Invalid amount. Please enter a numeric value.")
+        return
 
-        currency = input("Enter the currency code: ").upper()
-        if currency not in const.CURRENCIES:
-            print(const.CURRENCY_ERROR)
-            continue
+    currency = input("Enter the currency code: ").upper()
 
-        handler.add_transaction(amount=amount, currency=currency)
-        break
+    handler.add_transaction(amount=amount, currency=currency)
+
+
+def update_field_cli(handler: FixedWidthHandler) -> None:
+    field_permissions = _load_field_permissions()
+
+    record_type = input("Enter record to update: ")
+    field_name = input("Enter field name: ").title()
+
+    if not field_permissions.get(field_name, False):
+        raise KeyError(f"Updating field '{field_name}' is not allowed.")
+
+    field_value = input("Enter the new value: ")
+    counter = None
+    if record_type == 'transaction':
+        counter = input("Enter the transaction counter: ").zfill(6)
+    handler.update_field(record_type=record_type,
+                         field_name=field_name,
+                         field_value=field_value if not field_name == "Currency" else field_value.upper(),
+                         counter=counter)
 
 
 def _load_field_permissions(filepath='configs/permissions.json') -> dict:
@@ -57,32 +70,6 @@ def _save_field_permissions(settings, filepath='configs/permissions.json') -> No
             json.dump(settings, file, indent=4)
     except Exception as e:
         print(f"Saving configs failed due to: {e}")
-
-
-def update_field_cli(handler: FixedWidthHandler) -> None:
-    field_permissions = _load_field_permissions()
-
-    record_type = input("Enter record to update (header|transaction): ")
-    field_name = input("Enter field name: ").title()
-
-    if not field_permissions.get(field_name, False):
-        raise KeyError(f"Updating field '{field_name}' is not allowed.")
-
-    field_value = input("Enter the new value: ")
-    if field_name == "Currency" and field_value not in const.CURRENCIES:
-        raise ValueError(const.CURRENCY_ERROR)
-    counter = None
-    if record_type == 'transaction':
-        counter = input("Enter the transaction counter: ").zfill(6)
-    try:
-        handler.update_field(record_type=record_type,
-                             field_name=field_name,
-                             field_value=field_value if not field_name == "Currency" else field_value.upper(),
-                             counter=counter)
-    except KeyError:
-        print(f"Field {field_name} does not exist in {record_type}.")
-    except Exception as e:
-        print(e)
 
 
 def change_permissions() -> None:

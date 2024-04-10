@@ -43,10 +43,12 @@ class FixedWidthHandler:
 
     def read_file(self) -> (dict, list, dict):
         """Reads the fixed-width file, returning the header, list of transactions, and footer."""
+
         header, transactions, footer = None, [], None
         try:
             with open(self.filepath, 'r', encoding='utf-8') as file:
                 for line in file:
+                    # Indices of Field ID
                     field_id = line[0:2]
                     if field_id == self.field_id_header:  # Header
                         header = utils.get_values_as_dict(line, const.HEADER_SLICES)
@@ -70,6 +72,7 @@ class FixedWidthHandler:
 
     def _format_record(self, record, slices) -> str:
         """Formats a single record for writing to the file based on slice definitions."""
+
         line = ''
         for field, (start, end) in slices.items():
             value = str(record.get(field, ''))
@@ -84,17 +87,17 @@ class FixedWidthHandler:
 
     def write_file(self, header, transactions, footer) -> None:
         """Writes the header, transactions, and footer back to the fixed-width file."""
+
+        # Check whether there are no more than 20000 transactions
+        if len(transactions) > self.transaction_limit:
+            logger.error(f"Number of transactions reached limit - {self.transaction_limit}")
+            raise utils.TransactionLimitError(self.transaction_limit)
         try:
             with open(self.filepath, 'w', encoding='utf-8') as file:
                 # Header
                 header_line = self._format_record(header, const.HEADER_SLICES)
                 file.write(header_line + '\n')
                 logger.debug(f"Write {header_line} into {self.filepath}")
-
-                # Check whether there are no more than 20000 transactions
-                if len(transactions) > self.transaction_limit:
-                    logger.error(f"Number of transactions reached limit - {self.transaction_limit}")
-                    raise utils.TransactionLimitError(self.transaction_limit)
 
                 # Transactions
                 for transaction in transactions:
@@ -114,9 +117,14 @@ class FixedWidthHandler:
 
     def add_transaction(self, amount, currency) -> None:
         """Adds a new transaction record to the file."""
+
+        if currency not in const.CURRENCIES:
+            logger.error(const.CURRENCY_ERROR)
+            raise ValueError(const.CURRENCY_ERROR)
+
         header, transactions, footer = self.read_file()
 
-        # Next transaction number
+        # Next transaction's number
         next_counter = str(len(transactions) + 1).zfill(6)
 
         # Add new transaction to list
@@ -137,6 +145,7 @@ class FixedWidthHandler:
 
     def _update_header_field(self, header, field_name, value) -> None:
         """Updates a field value in the header record."""
+
         if field_name not in const.HEADER_FIELDS:
             message = f"{field_name} is not a valid field for header."
             logger.error(message)
@@ -146,6 +155,7 @@ class FixedWidthHandler:
 
     def _update_transaction_field(self, transactions, field_name, value, counter) -> None:
         """Updates a field value in a specific transaction record."""
+
         if field_name not in const.TRANSACTION_FIELDS:
             message = f"{field_name} is not a valid field for transaction."
             logger.error(message)
@@ -160,13 +170,29 @@ class FixedWidthHandler:
         logger.error(message)
         raise ValueError(message)
 
+    def _update_footer_field(self, footer, field_name, value) -> None:
+        """Updates a field value in the footer record."""
+
+        if field_name not in const.FOOTER_FIELDS:
+            message = f"{field_name} is not a valid field for footer."
+            logger.error(message)
+            raise ValueError(message)
+        footer[field_name] = value
+        logger.info(f"Value of {field_name} successfully updated into {value}")
+
     def update_field(self, record_type, field_name, field_value, counter=None) -> None:
         """Updates a field value in header, transaction, or footer based on record type."""
+
         header, transactions, footer = self.read_file()
 
+        if field_name == "Currency" and field_value not in const.CURRENCIES:
+            raise ValueError(const.CURRENCY_ERROR)
+
+        # Warn user about attempt of modifying auto fields
         if field_name in const.AUTO_FIELDS:
             logger.warning(f"Trying to update automatic measured or fixed field: '{field_name}'")
 
+        # Attempt to convert value type to validate
         try:
             value = const.FIELD_TYPES[field_name](field_value)
         except ValueError:
@@ -184,7 +210,7 @@ class FixedWidthHandler:
                                                value=value,
                                                counter=counter)
             case 'footer':
-                print("Footer is being updated automatically.")
+                self._update_footer_field(footer=footer, field_name=field_name, value=value)
             case _:
                 message = f"Unknown record type: {record_type}"
                 logger.error(message)
