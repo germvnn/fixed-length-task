@@ -25,6 +25,37 @@ def get_values_as_dict(line, slices) -> dict:
     return values
 
 
+def format_record(record, slices) -> str:
+    """Formats a single record for writing to the file based on slice definitions."""
+    line = ''
+    for field, (start, end) in slices.items():
+        value = str(record.get(field, ''))
+        length = end - start
+
+        if field in ['Counter', 'Amount', 'Control sum']:
+            value = value.zfill(length)
+            line += value.rjust(length)
+        else:
+            line += value.ljust(length)
+    return line
+
+
+def check_fields_length(field_name, value) -> None:
+    """Checks if the value for the given field name exceeds the maximum allowed length."""
+    max_length = const.MAX_LENGTHS.get(field_name, 0)
+    if len(str(value)) > max_length:
+        logger.error(f"Value for {field_name} exceeds maximum length of {max_length}.")
+        raise ValueError(f"Value for {field_name} is too long.")
+
+
+def validate_field_value(field_name, value) -> None:
+    """Checks if the value is validate"""
+    validation_function = const.FIELD_VALIDATIONS.get(field_name, None)
+    if validation_function and not validation_function(str(value)):
+        logger.error(f"Invalid value for {field_name}: {value}")
+        raise ValueError(f"Invalid value for {field_name}: {value}")
+
+
 def success(log_message) -> bool:
     """Logs a success message and returns True."""
     logger.info(log_message)

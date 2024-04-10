@@ -68,20 +68,6 @@ class FixedWidthHandler:
         logger.info("File successfully loaded")
         return header, transactions, footer
 
-    def _format_record(self, record, slices) -> str:
-        """Formats a single record for writing to the file based on slice definitions."""
-        line = ''
-        for field, (start, end) in slices.items():
-            value = str(record.get(field, ''))
-            length = end - start
-
-            if field in ['Counter', 'Amount', 'Control sum']:
-                value = value.zfill(length)
-                line += value.rjust(length)
-            else:
-                line += value.ljust(length)
-        return line
-
     def write_file(self, header, transactions, footer) -> None:
         """Writes the header, transactions, and footer back to the fixed-width file."""
         # Check whether there are no more than 20000 transactions
@@ -91,19 +77,19 @@ class FixedWidthHandler:
         try:
             with open(self.filepath, 'w', encoding='utf-8') as file:
                 # Header
-                header_line = self._format_record(header, const.HEADER_SLICES)
+                header_line = utils.format_record(header, const.HEADER_SLICES)
                 file.write(header_line + '\n')
                 logger.debug(f"Write {header_line} into {self.filepath}")
 
                 # Transactions
                 for transaction in transactions:
-                    transaction_line = self._format_record(transaction, const.TRANSACTIONS_SLICES)
+                    transaction_line = utils.format_record(transaction, const.TRANSACTIONS_SLICES)
                     file.write(transaction_line + '\n')
                     logger.debug(f"Write {transaction_line} into {self.filepath}")
 
                 # Footer
                 footer['Control sum'] = sum(int(transaction['Amount']) for transaction in transactions)
-                footer_line = self._format_record(footer, const.FOOTER_SLICES)
+                footer_line = utils.format_record(footer, const.FOOTER_SLICES)
                 file.write(footer_line + '\n')
                 logger.debug(f"Write {footer_line} into {self.filepath}")
         except Exception as e:
@@ -143,20 +129,14 @@ class FixedWidthHandler:
         logger.debug(f"Set new Total Counter: {footer['Total Counter']}")
         self.write_file(header, transactions, footer)
 
-    def _check_fields_length(self, field_name, value):
-        """Checks if the value for the given field name exceeds the maximum allowed length."""
-        max_length = const.MAX_LENGTHS.get(field_name, 0)
-        if len(value) > max_length:
-            logger.error(f"Value for {field_name} exceeds maximum length of {max_length}.")
-            raise ValueError(f"Value for {field_name} is too long.")
-
     def _update_header_field(self, header, field_name, value) -> None:
         """Updates a field value in the header record."""
         if field_name not in const.HEADER_FIELDS:
             message = f"{field_name} is not a valid field for header."
             logger.error(message)
             raise ValueError(message)
-        self._check_fields_length(field_name=field_name, value=value)
+        utils.check_fields_length(field_name=field_name, value=value)
+        utils.validate_field_value(field_name=field_name, value=value)
         header[field_name] = value
         logger.info(f"Value of {field_name} successfully updated into {value}")
 
@@ -169,7 +149,8 @@ class FixedWidthHandler:
         for transaction in transactions:
             if transaction['Counter'] == counter:
                 value = value if not field_name == 'Amount' else int(value * 100)
-                self._check_fields_length(field_name=field_name, value=value)
+                utils.check_fields_length(field_name=field_name, value=value)
+                utils.validate_field_value(field_name=field_name, value=value)
                 transaction[field_name] = value
                 logger.info(f"Value of {field_name} successfully updated into {value}")
                 return
@@ -183,7 +164,8 @@ class FixedWidthHandler:
             message = f"{field_name} is not a valid field for footer."
             logger.error(message)
             raise ValueError(message)
-        self._check_fields_length(field_name=field_name, value=value)
+        utils.check_fields_length(field_name=field_name, value=value)
+        utils.validate_field_value(field_name=field_name, value=value)
         footer[field_name] = value
         logger.info(f"Value of {field_name} successfully updated into {value}")
 

@@ -60,6 +60,18 @@ FIELD_TYPES = {
     "Control sum": int
 }
 
+# Address can have digits. Currencies are fixed
+FIELD_VALIDATIONS = {
+    'Field ID': str.isdigit,
+    'Name': str.isalpha,
+    'Surname': str.isalpha,
+    'Patronymic': str.isalpha,
+    'Amount': str.isdigit,
+    'Counter': str.isdigit,
+    'Total Counter': str.isdigit,
+    'Control sum': str.isdigit,
+}
+
 HEADER_FIELDS = {"Field ID", "Name", "Surname", "Patronymic", "Address"}
 TRANSACTION_FIELDS = {"Field ID", "Counter", "Amount", "Currency"}
 FOOTER_FIELDS = {"Total Counter", "Control sum"}
