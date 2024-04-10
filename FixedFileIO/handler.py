@@ -34,7 +34,6 @@ class FixedWidthHandler:
 
     def __init__(self, filepath):
         """Initializes the handler with file path and default settings."""
-
         self.filepath = filepath
         self.field_id_header = '01'
         self.field_id_transaction = '02'
@@ -43,7 +42,6 @@ class FixedWidthHandler:
 
     def read_file(self) -> (dict, list, dict):
         """Reads the fixed-width file, returning the header, list of transactions, and footer."""
-
         header, transactions, footer = None, [], None
         try:
             with open(self.filepath, 'r', encoding='utf-8') as file:
@@ -72,7 +70,6 @@ class FixedWidthHandler:
 
     def _format_record(self, record, slices) -> str:
         """Formats a single record for writing to the file based on slice definitions."""
-
         line = ''
         for field, (start, end) in slices.items():
             value = str(record.get(field, ''))
@@ -87,7 +84,6 @@ class FixedWidthHandler:
 
     def write_file(self, header, transactions, footer) -> None:
         """Writes the header, transactions, and footer back to the fixed-width file."""
-
         # Check whether there are no more than 20000 transactions
         if len(transactions) > self.transaction_limit:
             logger.error(f"Number of transactions reached limit - {self.transaction_limit}")
@@ -117,7 +113,7 @@ class FixedWidthHandler:
 
     def add_transaction(self, amount, currency) -> None:
         """Adds a new transaction record to the file."""
-
+        # Currency validation
         if currency not in const.CURRENCIES:
             logger.error(const.CURRENCY_ERROR)
             raise ValueError(const.CURRENCY_ERROR)
@@ -135,6 +131,10 @@ class FixedWidthHandler:
             'Currency': currency,
             'Reserved': ''
         }
+        # Check whether Amount's length is fixed
+        if len(new_transaction['Amount']) > const.MAX_LENGTHS['Amount']:
+            logger.error(f"Amount: {new_transaction['Amount']} exceeds maximum length of {const.MAX_LENGTHS['Amount']}")
+            raise ValueError(f"Amount {new_transaction['Amount']} is too long")
         transactions.append(new_transaction)
         logger.debug(f"Add transaction: {new_transaction}")
 
@@ -143,19 +143,25 @@ class FixedWidthHandler:
         logger.debug(f"Set new Total Counter: {footer['Total Counter']}")
         self.write_file(header, transactions, footer)
 
+    def _check_fields_length(self, field_name, value):
+        """Checks if the value for the given field name exceeds the maximum allowed length."""
+        max_length = const.MAX_LENGTHS.get(field_name, 0)
+        if len(value) > max_length:
+            logger.error(f"Value for {field_name} exceeds maximum length of {max_length}.")
+            raise ValueError(f"Value for {field_name} is too long.")
+
     def _update_header_field(self, header, field_name, value) -> None:
         """Updates a field value in the header record."""
-
         if field_name not in const.HEADER_FIELDS:
             message = f"{field_name} is not a valid field for header."
             logger.error(message)
             raise ValueError(message)
+        self._check_fields_length(field_name=field_name, value=value)
         header[field_name] = value
         logger.info(f"Value of {field_name} successfully updated into {value}")
 
     def _update_transaction_field(self, transactions, field_name, value, counter) -> None:
         """Updates a field value in a specific transaction record."""
-
         if field_name not in const.TRANSACTION_FIELDS:
             message = f"{field_name} is not a valid field for transaction."
             logger.error(message)
@@ -163,6 +169,7 @@ class FixedWidthHandler:
         for transaction in transactions:
             if transaction['Counter'] == counter:
                 value = value if not field_name == 'Amount' else int(value * 100)
+                self._check_fields_length(field_name=field_name, value=value)
                 transaction[field_name] = value
                 logger.info(f"Value of {field_name} successfully updated into {value}")
                 return
@@ -172,19 +179,19 @@ class FixedWidthHandler:
 
     def _update_footer_field(self, footer, field_name, value) -> None:
         """Updates a field value in the footer record."""
-
         if field_name not in const.FOOTER_FIELDS:
             message = f"{field_name} is not a valid field for footer."
             logger.error(message)
             raise ValueError(message)
+        self._check_fields_length(field_name=field_name, value=value)
         footer[field_name] = value
         logger.info(f"Value of {field_name} successfully updated into {value}")
 
     def update_field(self, record_type, field_name, field_value, counter=None) -> None:
         """Updates a field value in header, transaction, or footer based on record type."""
-
         header, transactions, footer = self.read_file()
 
+        # Currency validation
         if field_name == "Currency" and field_value not in const.CURRENCIES:
             logger.error(const.CURRENCY_ERROR)
             raise ValueError(const.CURRENCY_ERROR)

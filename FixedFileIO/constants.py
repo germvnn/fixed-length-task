@@ -21,6 +21,20 @@ FOOTER_SLICES = {
         'Reserved': (20, 120)
     }
 
+MAX_LENGTHS = {
+    'Field ID': HEADER_SLICES['Field ID'][1] - HEADER_SLICES['Field ID'][0],
+    'Name': HEADER_SLICES['Name'][1] - HEADER_SLICES['Name'][0],
+    'Surname': HEADER_SLICES['Surname'][1] - HEADER_SLICES['Surname'][0],
+    'Patronymic': HEADER_SLICES['Patronymic'][1] - HEADER_SLICES['Patronymic'][0],
+    'Address': HEADER_SLICES['Address'][1] - HEADER_SLICES['Address'][0],
+    'Counter': TRANSACTIONS_SLICES['Counter'][1] - TRANSACTIONS_SLICES['Counter'][0],
+    'Amount': TRANSACTIONS_SLICES['Amount'][1] - TRANSACTIONS_SLICES['Amount'][0],
+    'Currency': TRANSACTIONS_SLICES['Currency'][1] - TRANSACTIONS_SLICES['Currency'][0],
+    'Total Counter': FOOTER_SLICES['Total Counter'][1] - FOOTER_SLICES['Total Counter'][0],
+    'Control sum': FOOTER_SLICES['Control sum'][1] - FOOTER_SLICES['Control sum'][0]
+}
+
+
 CURRENCIES = [
     "USD", "EUR", "JPY", "GBP", "AUD",
     "CAD", "CHF", "CNY", "SEK", "NZD",
