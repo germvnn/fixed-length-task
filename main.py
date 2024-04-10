@@ -29,9 +29,7 @@ def read_values_cli(handler: FixedWidthHandler) -> None:
 
     # Display currency warning
     if len(currencies) > 1:
-        message = f"Control sum is not representative due to different currencies: {currencies}"
-        logger.warning(message)
-        print(message)
+        logger.warning(f"Control sum is not representative due to different currencies: {currencies}")
 
 
 def add_transaction_cli(handler: FixedWidthHandler) -> None:
@@ -96,13 +94,19 @@ def change_permissions_cli() -> None:
     # Display current permissions
     for field, permission in permissions.items():
         print(f"{field}: {'Blocked' if permission else 'Allowed'}")
-    field_to_change = input("Enter field name to change permission: ")
-    if field_to_change in permissions:
-        permissions[field_to_change] = not permissions[field_to_change]
-        _save_field_permissions(permissions)
-        print(f"Permission for {field_to_change} changed successfully.")
+    decision = input("Do you want to change settings? (y/n) ")
+    if decision == 'y':
+        field_to_change = input("Enter field name to change permission: ")
+        if field_to_change in permissions:
+            permissions[field_to_change] = not permissions[field_to_change]
+            _save_field_permissions(permissions)
+            print(f"Permission for {field_to_change} changed successfully.")
+        else:
+            print("Field name does not exist.")
+    elif decision == 'n':
+        return
     else:
-        print("Field name does not exist.")
+        print("Invalid response")
 
 
 def setup_logger() -> None:
@@ -143,7 +147,7 @@ def main() -> None:
         print(f"Validation success: {results}")
     else:
         print(f"Validation failure: {results}")
-
+        return
     # Main
     match args.action:
         case 'read':

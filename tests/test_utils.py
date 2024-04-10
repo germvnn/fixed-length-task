@@ -25,6 +25,8 @@ class TestUtils(unittest.TestCase):
         """Tests that check_fields_length raises a ValueError"""
         with self.assertRaises(ValueError):
             utils.check_fields_length('Name', 'JohnJohnJohnJohnJohnJohnJohnJohnJohnJohn')
+        with self.assertRaises(ValueError):
+            utils.check_fields_length('Counter', '0100000')
 
     def test_validate_field_value_invalid(self):
         """Tests that validate_field_value raises a ValueError for invalid values."""

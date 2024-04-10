@@ -103,7 +103,7 @@ class ValidationExecutor:
                 return failure(log_message=f"Invalid {key} in header")
 
         # Address validation
-        if not re.match(r'^[\w\s,.]+$', address):
+        if not re.match(r'^[\w\s,./-]+$', address):
             return failure(log_message="Invalid Address in header.")
 
         return success(log_message="Header is valid.")
@@ -130,7 +130,7 @@ class ValidationExecutor:
                 return failure(log_message="Invalid Field ID in transaction.")
 
             # Counter validation
-            if not re.match(r'^\d{6}$', counter):
+            if not re.match(r'^(?!000000)\d{6}$', counter):
                 return failure(log_message="Counter format is not correct.")
 
             # Amount validation
@@ -163,13 +163,13 @@ class ValidationExecutor:
         if not re.match(r'^\d{6}$', total_counter):
             return failure(log_message="Total Counter format is not correct.")
         if int(total_counter) != num_transactions:
-            return failure(log_message=f"Total Counter does not match the number of transactions ({num_transactions}).")
+            return failure(log_message=f"{int(total_counter)} not match the number of transactions {num_transactions}.")
 
         # Control Sum validation
         if not re.match(r'^\d{12}$', control_sum):
-            return failure(log_message="Control Sum format is not correct.")
+            return failure(log_message="Control sum format is not correct.")
         if int(control_sum) != total_amount:
-            return failure(log_message=f"Control Sum does not match the total amount of transactions ({total_amount}).")
+            return failure(log_message=f"Control sum {int(control_sum)} not match transactions sum {total_amount}.")
 
         return success(log_message="Footer is valid.")
 
@@ -191,11 +191,11 @@ class ValidationExecutor:
                 total_amount = None
 
             # List of results of particular validations
-            results = {self.validate_header(line=lines[0]),
+            results = [self.validate_header(line=lines[0]),
                        self.validate_transactions(lines=lines[1:-1]),
                        self.validate_footer(line=lines[-1],
                                             num_transactions=num_transactions,
-                                            total_amount=total_amount)}
+                                            total_amount=total_amount)]
 
             if all(results):
                 return success(log_message=f"Validation OK. Results: {results}"), results
