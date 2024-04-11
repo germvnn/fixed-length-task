@@ -113,7 +113,7 @@ class FixedWidthHandler:
         new_transaction = {
             'Field ID': self.field_id_transaction,
             'Counter': next_counter,
-            'Amount': f"{int(float(amount) * 100):012}",
+            'Amount': f"{amount:012}",
             'Currency': currency,
             'Reserved': ''
         }
@@ -148,7 +148,6 @@ class FixedWidthHandler:
             raise ValueError(message)
         for transaction in transactions:
             if transaction['Counter'] == counter:
-                value = value if not field_name == 'Amount' else int(value * 100)
                 utils.check_fields_length(field_name=field_name, value=value)
                 utils.validate_field_value(field_name=field_name, value=value)
                 transaction[field_name] = value

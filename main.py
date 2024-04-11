@@ -34,10 +34,9 @@ def read_values_cli(handler: FixedWidthHandler) -> None:
 
 def add_transaction_cli(handler: FixedWidthHandler) -> None:
     """CLI function for managing add transactions"""
-    amount = input("Enter the transaction amount: ")
-    # Check whether amount can be float type
+    # Check whether amount is numeric
     try:
-        amount = "{:.2f}".format(float(amount))
+        amount = int(input("Enter the transaction amount (last two digits represent fractions eg. 100 -> 1.00): "))
     except ValueError:
         print("Invalid amount. Please enter a numeric value.")
         return

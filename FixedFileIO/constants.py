@@ -54,7 +54,7 @@ FIELD_TYPES = {
     "Patronymic": str,
     "Address": str,
     "Counter": str,
-    "Amount": float,
+    "Amount": int,
     "Currency": str,
     "Total Counter": int,
     "Control sum": int
